@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::string::FromUtf8Error;
 
+
+
 pub fn hex_to_base64(hex: &str) -> String
 {
     let b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
