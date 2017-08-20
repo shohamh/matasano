@@ -8,7 +8,6 @@ pub mod set7;
 pub mod set8;
 
 
-
 #[cfg(test)]
 mod tests {
     use set1;
@@ -50,6 +49,9 @@ mod tests {
     }
     #[test]
     fn set1_challenge4() {
+        let mut f = ::std::fs::File::open("resources/s1c4.txt").expect("File not found");
+        let mut contents = String::new();
+        f.read_to_string(&mut contents).expect("Couldn't read to string");
 
     }
 
