@@ -119,6 +119,26 @@ pub fn char_frequency(buf: &[u8]) -> HashMap<char, f64> {
     result
 }
 
+pub fn decrypt_single_byte_xor_english(ciphertext: &str) -> (String, u8, f64) {
+    let (mut min_chi_squared, mut min_key, mut decryption) = (similarity_to_english(&ciphertext), 0, ciphertext.to_owned());
+
+    'outer: for i in 1 .. 255 {
+        let attempted_decryption = String::from_utf8(single_byte_xor(ciphertext.as_bytes(), i)).unwrap_or(String::from("00000000000000"));
+        'inner: for ch in attempted_decryption.as_bytes() {
+            if (*ch as char).is_control() || *ch > 127 {
+                continue 'outer;
+            }
+        }
+        let chi_squared = similarity_to_english(&attempted_decryption);
+        if chi_squared < min_chi_squared {
+            min_chi_squared = chi_squared;
+            min_key = i;
+            decryption = attempted_decryption;
+        }
+    }
+    (decryption, min_key, min_chi_squared)
+}
+
 pub fn similarity_to_english(buf: &str) -> f64 {
     let frequency_table = vec![
         (9, 0.000057), (32, 0.171662), (33, 0.000072), (34, 0.002442), (35, 0.000179),

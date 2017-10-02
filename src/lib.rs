@@ -10,6 +10,7 @@ pub mod set8;
 
 #[cfg(test)]
 mod tests {
+    use std::io::Read;
     use set1;
     #[test]
     fn set1_challenge1() {
@@ -27,31 +28,22 @@ mod tests {
     fn set1_challenge3() {
         let decoded_string = set1::decode_hex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
         let string = String::from_utf8(decoded_string.to_owned()).unwrap();
-        let (mut min_chi_squared, mut min_key, mut decryption) = (set1::similarity_to_english(&string), 0, string);
-
-        'outer: for i in 1 .. 255 {
-            let attempted_decryption = String::from_utf8(set1::single_byte_xor(&decoded_string, i)).unwrap_or(String::from("00000000000000"));
-            'inner: for ch in attempted_decryption.as_bytes() {
-                if (*ch as char).is_control() || *ch > 127 {
-                    continue 'outer;
-                }
-            }
-            let chi_squared = set1::similarity_to_english(&attempted_decryption);
-            if chi_squared < min_chi_squared {
-                min_chi_squared = chi_squared;
-                min_key = i;
-                decryption = attempted_decryption;
-            }
-        }
-        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", decryption, min_key, min_chi_squared);
+        let (plaintext, min_key, min_chi_squared) = set1::decrypt_single_byte_xor_english(&string);
+        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
         
-        assert_eq!("Cooking MC's like a pound of bacon", decryption);
+        assert_eq!("Cooking MC's like a pound of bacon", plaintext);
     }
+
     #[test]
     fn set1_challenge4() {
         let mut f = ::std::fs::File::open("resources/s1c4.txt").expect("File not found");
         let mut contents = String::new();
         f.read_to_string(&mut contents).expect("Couldn't read to string");
+        let min_chi_squared = 999999999;
+        for line in contents.lines() {
+            
+        }
+
 
     }
 
