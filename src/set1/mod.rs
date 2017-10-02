@@ -125,9 +125,10 @@ pub fn decrypt_single_byte_xor_english(ciphertext: &str) -> (String, u8, f64) {
     'outer: for i in 1 .. 255 {
         let attempted_decryption = String::from_utf8(single_byte_xor(ciphertext.as_bytes(), i)).unwrap_or(String::from("00000000000000"));
         'inner: for ch in attempted_decryption.as_bytes() {
-            if (*ch as char).is_control() || *ch > 127 {
+            //if (*ch as char).is_control() || *ch > 127 {
+            /*if *ch > 127 {
                 continue 'outer;
-            }
+            }*/
         }
         let chi_squared = similarity_to_english(&attempted_decryption);
         if chi_squared < min_chi_squared {
