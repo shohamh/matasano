@@ -118,17 +118,86 @@ pub fn char_frequency(buf: &[u8]) -> HashMap<char, f64> {
     }
     result
 }
-
-pub fn decrypt_single_byte_xor_english(ciphertext: &str) -> (String, u8, f64) {
-    let (mut min_chi_squared, mut min_key, mut decryption) = (similarity_to_english(&ciphertext), 0, ciphertext.to_owned());
+/*
+pub fn decrypt_single_byte_xor_english(ciphertext: &[u8]) -> (Option<String>, u8, f64) {
+    let (mut min_chi_squared, mut min_key, mut decryption) = (similarity_to_english(ciphertext), 0, ciphertext.to_owned());
 
     'outer: for i in 1 .. 255 {
-        let attempted_decryption = String::from_utf8(single_byte_xor(ciphertext.as_bytes(), i)).unwrap_or(String::from("00000000000000"));
-        'inner: for ch in attempted_decryption.as_bytes() {
-            //if (*ch as char).is_control() || *ch > 127 {
-            /*if *ch > 127 {
+        let xored_buf = single_byte_xor(&decryption, i);
+        'inner: for ch in &xored_buf {
+            // if (*ch as char).is_control() || *ch > 127 {
+            if *ch > 127 {
                 continue 'outer;
-            }*/
+            }
+        }
+        let chi_squared = similarity_to_english(&xored_buf);
+        if chi_squared < min_chi_squared {
+            min_chi_squared = chi_squared;
+            min_key = i;
+            decryption = xored_buf;
+            println!("Source: '{}', Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", String::from_utf8(ciphertext.to_owned()).unwrap(), String::from_utf8(decryption.clone()).unwrap_or(String::from("00000000")), min_key, min_chi_squared);
+        }
+    }
+    let plaintext_option = match String::from_utf8(decryption) {
+        Ok(plaintext) => Some(plaintext),
+        Err(_) => None
+    };
+    (plaintext_option, min_key, min_chi_squared)
+}
+
+
+pub fn similarity_to_english(buf: &[u8]) -> f64 {
+    let frequency_table = vec![
+        (9, 0.000057), (32, 0.171662), (33, 0.000072), (34, 0.002442), (35, 0.000179),
+        (36, 0.000561), (37, 0.000160), (38, 0.000226), (39, 0.002447), (40, 0.002178),
+        (41, 0.002233), (42, 0.000628), (43, 0.000215), (44, 0.007384), (45, 0.013734),
+        (46, 0.015124), (47, 0.001549), (48, 0.005516), (49, 0.004594), (50, 0.003322),
+        (51, 0.001847), (52, 0.001348), (53, 0.001663), (54, 0.001153), (55, 0.001030),
+        (56, 0.001054), (57, 0.001024), (58, 0.004354), (59, 0.001214), (60, 0.001225),
+        (61, 0.000227), (62, 0.001242), (63, 0.001474), (64, 0.000073), (65, 0.003132),
+        (66, 0.002163), (67, 0.003906), (68, 0.003151), (69, 0.002673), (70, 0.001416),
+        (71, 0.001876), (72, 0.002321), (73, 0.003211), (74, 0.001726), (75, 0.000687),
+        (76, 0.001884), (77, 0.003529), (78, 0.002085), (79, 0.001842), (80, 0.002614),
+        (81, 0.000316), (82, 0.002519), (83, 0.004003), (84, 0.003322), (85, 0.000814),
+        (86, 0.000892), (87, 0.002527), (88, 0.000343), (89, 0.000304), (90, 0.000076),
+        (91, 0.000086), (92, 0.000016), (93, 0.000088), (94, 0.000003), (95, 0.001159),
+        (96, 0.000009), (97, 0.051880), (98, 0.010195), (99, 0.021129), (100, 0.025071),
+        (101, 0.085771), (102, 0.013725), (103, 0.015597), (104, 0.027444), (105, 0.049019),
+        (106, 0.000867), (107, 0.006753), (108, 0.031750), (109, 0.016437), (110, 0.049701),
+        (111, 0.057701), (112, 0.015482), (113, 0.000747), (114, 0.042586), (115, 0.043686),
+        (116, 0.063700), (117, 0.020999), (118, 0.008462), (119, 0.013034), (120, 0.001950),
+        (121, 0.011330), (122, 0.000596), (123, 0.000026), (124, 0.000007), (125, 0.000026),
+        (126, 0.000003)
+    ];
+
+    let mut eng_freq = HashMap::new();
+    for &(c, f) in &frequency_table {
+        eng_freq.insert(c, f);
+    }
+    let buf_freq = char_frequency(buf);
+    // Pearson's chi-squared test:
+    let mut chi_squared : f64 = 0.0;
+    for (&c, &f) in buf_freq.iter() {
+        let expected_f = match eng_freq.get(&(c as u8)) {
+            Some(&freq) => freq,
+            None => 0.0
+        };
+        chi_squared += (f - expected_f).powi(2) / expected_f;
+    }
+    chi_squared
+}
+*/
+
+pub fn decrypt_single_byte_xor_english(ciphertext: &[u8]) -> (Option<String>, u8, f64) {
+    let (mut min_chi_squared, mut min_key, mut decryption) = (similarity_to_english(ciphertext), 0, ciphertext.to_owned());
+
+    'outer: for i in 1 .. 255 {
+        let attempted_decryption = single_byte_xor(ciphertext, i);
+        'inner: for ch in &attempted_decryption {
+            //if (*ch as char).is_control() || *ch > 127 {
+            if *ch > 127 {
+                continue 'outer;
+            }
         }
         let chi_squared = similarity_to_english(&attempted_decryption);
         if chi_squared < min_chi_squared {
@@ -137,10 +206,14 @@ pub fn decrypt_single_byte_xor_english(ciphertext: &str) -> (String, u8, f64) {
             decryption = attempted_decryption;
         }
     }
-    (decryption, min_key, min_chi_squared)
+    let plaintext_option = match String::from_utf8(decryption) {
+        Ok(plaintext) => Some(plaintext),
+        Err(_) => None
+    };
+    (plaintext_option, min_key, min_chi_squared)
 }
 
-pub fn similarity_to_english(buf: &str) -> f64 {
+pub fn similarity_to_english(buf: &[u8]) -> f64 {
     let frequency_table = vec![
         (9, 0.000057), (32, 0.171662), (33, 0.000072), (34, 0.002442), (35, 0.000179),
         (36, 0.000561), (37, 0.000160), (38, 0.000226), (39, 0.002447), (40, 0.002178),
@@ -169,7 +242,7 @@ pub fn similarity_to_english(buf: &str) -> f64 {
     for &(c, f) in &frequency_table {
         eng_freq.insert(c, f);
     }
-    let buf_freq = char_frequency(buf.as_bytes());
+    let buf_freq = char_frequency(buf);
     // Pearson's chi-squared test:
     let mut chi_squared : f64 = 0.0;
     for (&c, &f) in buf_freq.iter() {

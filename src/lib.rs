@@ -11,6 +11,7 @@ pub mod set8;
 #[cfg(test)]
 mod tests {
     use std::io::Read;
+    use std::fs::File;
     use set1;
     #[test]
     fn set1_challenge1() {
@@ -27,33 +28,36 @@ mod tests {
     #[test]
     fn set1_challenge3() {
         let decoded_string = set1::decode_hex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
-        let string = String::from_utf8(decoded_string.to_owned()).unwrap();
-        let (plaintext, min_key, min_chi_squared) = set1::decrypt_single_byte_xor_english(&string);
-        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
+        let (plaintext, min_key, min_chi_squared) = set1::decrypt_single_byte_xor_english(&decoded_string);
+        println!("Solution: '{:?}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
         
-        assert_eq!("Cooking MC's like a pound of bacon", plaintext);
+        assert_eq!("Cooking MC's like a pound of bacon", plaintext.unwrap());
     }
 
     #[test]
     fn set1_challenge4() {
-        let mut f = ::std::fs::File::open("resources/s1c4.txt").expect("File not found");
+        let mut f = File::open("resources/s1c4.txt").expect("File not found");
         let mut contents = String::new();
         f.read_to_string(&mut contents).expect("Couldn't read to string");
-        let lines : Vec<&str> = contents.lines().collect();
-        let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines[0]);
+        //let lines : Vec<Vec<u8>> = contents.lines().map(set1::decode_hex).collect();
+        let lines = contents.lines().collect::<Vec<&str>>();
+        let mut lines_bufs = Vec::new();
+        for i in 0 .. lines.len() {
+            lines_bufs.push(set1::decode_hex(&lines[i]));
+        }
+        let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[0]);
         
-        //while i < lines.len() {
-        for i in 1..lines.len() {    
-            let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&lines[i]);
-            println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", attempted_decryption, temp_key, temp_chi_squared);
+        for i in 1..lines.len() {
+            let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[i]);
             if temp_chi_squared < min_chi_squared {
                 plaintext = attempted_decryption;
                 min_key = temp_key;
                 min_chi_squared = temp_chi_squared;
+                println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext.clone().unwrap(), min_key, min_chi_squared);
             }
         }
 
-        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
+        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext.unwrap(), min_key, min_chi_squared);
 
     }
 
