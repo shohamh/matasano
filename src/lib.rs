@@ -39,16 +39,11 @@ mod tests {
         let mut f = File::open("resources/s1c4.txt").expect("File not found");
         let mut contents = String::new();
         f.read_to_string(&mut contents).expect("Couldn't read to string");
-        //let lines : Vec<Vec<u8>> = contents.lines().map(set1::decode_hex).collect();
-        let lines = contents.lines().collect::<Vec<&str>>();
-        let mut lines_bufs = Vec::new();
-        for i in 0 .. lines.len() {
-            lines_bufs.push(set1::decode_hex(&lines[i]));
-        }
-        let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[0]);
+        let mut lines = contents.lines().map(set1::decode_hex);
         
-        for i in 1..lines_bufs.len() {
-            let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[i]);
+        let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines.next().unwrap());
+        for line in lines {
+            let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&line);
             if temp_chi_squared < min_chi_squared {
                 plaintext = attempted_decryption;
                 min_key = temp_key;
@@ -60,5 +55,4 @@ mod tests {
 
         assert_eq!(Some(String::from("Now that the party is jumping\n")), plaintext);
     }
-
 }
