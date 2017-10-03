@@ -98,13 +98,14 @@ pub fn fixed_xor(buf1 : &[u8], buf2 : &[u8]) -> Vec<u8>
 
 
 // xor every byte in the buffer with the single byte.
-pub fn single_byte_xor(buf: &[u8], byte: u8) -> Vec<u8>
+pub fn single_byte_xor(buf: &Vec<u8>, byte: u8) -> Vec<u8>
 {
-    let mut v = Vec::new();
+    buf.iter().map(|c| c ^ byte).collect()
+    /*let mut v = Vec::new();
     for i in 0.. buf.len() {
         v.push(buf[i] ^ byte);
     }
-    v
+    v*/
 }
 
 pub fn char_frequency(buf: &[u8]) -> HashMap<char, f64> {
@@ -192,9 +193,8 @@ pub fn decrypt_single_byte_xor_english(ciphertext: &[u8]) -> (Option<String>, u8
     let (mut min_chi_squared, mut min_key, mut decryption) = (similarity_to_english(ciphertext), 0, ciphertext.to_owned());
 
     'outer: for i in 1 .. 255 {
-        let attempted_decryption = single_byte_xor(ciphertext, i);
+        let attempted_decryption = single_byte_xor(&ciphertext.to_owned(), i);
         'inner: for ch in &attempted_decryption {
-            //if (*ch as char).is_control() || *ch > 127 {
             if *ch > 127 {
                 continue 'outer;
             }
@@ -215,7 +215,7 @@ pub fn decrypt_single_byte_xor_english(ciphertext: &[u8]) -> (Option<String>, u8
 
 pub fn similarity_to_english(buf: &[u8]) -> f64 {
     let frequency_table = vec![
-        (9, 0.000057), (32, 0.171662), (33, 0.000072), (34, 0.002442), (35, 0.000179),
+        (9, 0.000057), (10, 0.020827), (13, 0.020827), (32, 0.171662), (33, 0.000072), (34, 0.002442), (35, 0.000179),
         (36, 0.000561), (37, 0.000160), (38, 0.000226), (39, 0.002447), (40, 0.002178),
         (41, 0.002233), (42, 0.000628), (43, 0.000215), (44, 0.007384), (45, 0.013734),
         (46, 0.015124), (47, 0.001549), (48, 0.005516), (49, 0.004594), (50, 0.003322),
@@ -249,7 +249,7 @@ pub fn similarity_to_english(buf: &[u8]) -> f64 {
         let expected_f = match eng_freq.get(&(c as u8)) {
             Some(&freq) => freq,
             None => 0.0
-        };
+        };        
         chi_squared += (f - expected_f).powi(2) / expected_f;
     }
     chi_squared

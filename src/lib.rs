@@ -47,18 +47,18 @@ mod tests {
         }
         let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[0]);
         
-        for i in 1..lines.len() {
+        for i in 1..lines_bufs.len() {
             let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&lines_bufs[i]);
             if temp_chi_squared < min_chi_squared {
                 plaintext = attempted_decryption;
                 min_key = temp_key;
                 min_chi_squared = temp_chi_squared;
-                println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext.clone().unwrap(), min_key, min_chi_squared);
             }
         }
 
-        println!("Solution: '{}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext.unwrap(), min_key, min_chi_squared);
+        println!("Solution: {:?}, with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
 
+        assert_eq!(Some(String::from("Now that the party is jumping\n")), plaintext);
     }
 
 }
