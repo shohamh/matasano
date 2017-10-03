@@ -254,3 +254,13 @@ pub fn similarity_to_english(buf: &[u8]) -> f64 {
     }
     chi_squared
 }
+
+pub fn repeating_key_xor(plaintext: &str, key: &str) -> String {
+    let mut ciphertext = String::new();
+    let mut key_index = 0;
+    for c in plaintext.chars() {
+        ciphertext.push((c as u8 ^ key.as_bytes()[key_index]) as char);
+        key_index = (key_index + 1) % key.len();
+    }
+    ciphertext
+}
