@@ -7,7 +7,7 @@ use std::string::FromUtf8Error;
 pub fn hex_to_base64(hex: &str) -> String
 {
     let b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
-    let mut buf : [u8; 3] = [0, 0, 0];
+    let mut buf = [0; 3];
     let mut result = String::new();
     let mut i = 0;
     let hexb = hex.as_bytes();
@@ -22,18 +22,41 @@ pub fn hex_to_base64(hex: &str) -> String
         result.push(b64[(((buf[0] & 0b0000_0011) << 4) + (buf[1] >> 4)) as usize] as char);
         result.push(b64[(((buf[1] & 0b0000_1111) << 2) + (buf[2] >> 6)) as usize] as char);
         result.push(b64[(buf[2] & 0b0011_1111) as usize] as char);
-        buf = [0, 0, 0];
+        buf = [0; 3];
         i += 6;
     }
     result
 }
 
 pub fn base64_decode(string: &str) -> Vec<u8> {
-    let b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
-    let mut result : Vec<u8> = vec![0; (string.len() as f64 * 3.0 / 4.0).ceil() as usize];
-    
+    let b64 = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+    let mut buf : [u8; 4] = [0; 4];
+    let mut padding_begin_index = string.len() - 1;
+    while string.as_bytes()[padding_begin_index] as char == '=' {
+        padding_begin_index -= 1;
+    }
+    println!("{}", padding_begin_index);
+    let mut result : Vec<u8> = vec![0; ((padding_begin_index + 1) as f64 * 3.0 / 4.0).ceil() as usize];
+    for (v, vo) in string[0..padding_begin_index + 1].as_bytes().chunks(4).zip(result.as_mut_slice().chunks_mut(3)) 
+    {
+        fn quad2triplet(buf: [u8; 4]) -> [u8; 3] {
+            [(buf[0] << 2) + (buf[1] >> 4), (buf[1] << 4) + (buf[2] >> 2), (buf[2] << 6) + buf[3]]
+        }
 
-
+        for i in 0..buf.len()
+        {
+            buf[i] = match v.get(i) {
+                Some(x) => match b64.find(*x as char) {
+                    Some(ind) => ind as u8,
+                    None => 0
+                },
+                None => 0
+            };
+        }
+        println!("{:?} = {:?} : {:?}", buf, String::from_utf8(v.to_vec()), quad2triplet(buf));
+        let volen = vo.len();
+        vo.copy_from_slice(&quad2triplet(buf)[0..volen]);
+    }
     result
 }
 
@@ -54,7 +77,6 @@ pub fn base64_encode(bytes: &[u8]) -> String {
                 None => 0
             };
         }
-
         let volen = vo.len();
         vo.copy_from_slice(&triplet2quad(buf)[0..volen]);
     }
