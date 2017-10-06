@@ -14,6 +14,18 @@ mod tests {
     use std::fs::File;
     use set1;
     #[test]
+    fn base64_encode() {
+        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhcw=="), set1::base64_encode("any carnal pleas".as_bytes()));
+        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3U="), set1::base64_encode("any carnal pleasu".as_bytes()));
+        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3Vy"), set1::base64_encode("any carnal pleasur".as_bytes()));
+    }
+    #[test]
+    fn base64_decode() {
+        assert_eq!("any carnal pleas".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhcw=="));
+        assert_eq!("any carnal pleasu".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U="));
+        assert_eq!("any carnal pleasur".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy"));
+    }
+    #[test]
     fn set1_challenge1() {
         assert_eq!("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t",
                     set1::hex_to_base64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"))
@@ -21,7 +33,7 @@ mod tests {
     #[test]
     fn set1_challenge2() {
         assert_eq!(
-            set1::fixed_xor(set1::decode_hex("1c0111001f010100061a024b53535009181c").as_slice(), set1::decode_hex("686974207468652062756c6c277320657965").as_slice()),
+            set1::fixed_xor(&set1::decode_hex("1c0111001f010100061a024b53535009181c"), &set1::decode_hex("686974207468652062756c6c277320657965")),
             set1::decode_hex("746865206b696420646f6e277420706c6179")
         )
     }
