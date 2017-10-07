@@ -18,12 +18,22 @@ mod tests {
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhcw=="), set1::base64_encode("any carnal pleas".as_bytes()));
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3U="), set1::base64_encode("any carnal pleasu".as_bytes()));
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3Vy"), set1::base64_encode("any carnal pleasur".as_bytes()));
+        
     }
     #[test]
     fn base64_decode() {
         assert_eq!("any carnal pleas".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhcw=="));
         assert_eq!("any carnal pleasu".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U="));
         assert_eq!("any carnal pleasur".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy"));
+        
+        let mut s1c6 = File::open("resources/s1c6.txt").expect("File not found");
+        let mut contents_s1c6 = String::new();
+        s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
+        let mut s1c6_decoded_externally = File::open("resources/s1c6_decoded_externally.bin").expect("File not found");
+        let mut contents_s1c6_de = String::new();
+        s1c6_decoded_externally.read_to_string(&mut contents_s1c6_de).expect("Couldn't read to string");
+
+        assert_eq!(contents_s1c6_de.as_bytes(), set1::base64_decode(&contents_s1c6).as_slice());
     }
     #[test]
     fn set1_challenge1() {

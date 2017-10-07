@@ -29,13 +29,13 @@ pub fn hex_to_base64(hex: &str) -> String
 }
 
 pub fn base64_decode(string: &str) -> Vec<u8> {
-    let b64 = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+    let b64 = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
     let mut buf : [u8; 4] = [0; 4];
     let mut padding_begin_index = string.len() - 1;
     while string.as_bytes()[padding_begin_index] as char == '=' {
         padding_begin_index -= 1;
     }
-    let mut result : Vec<u8> = vec![0; ((padding_begin_index + 1) as f64 * 3.0 / 4.0) as usize];
+    let mut result : Vec<u8> = vec![0; ((padding_begin_index + 1) as f64 * 3.0 / 4.0).ceil() as usize];
     for (v, vo) in string[0..padding_begin_index + 1].as_bytes().chunks(4).zip(result.as_mut_slice().chunks_mut(3)) 
     {
         fn quad2triplet(buf: [u8; 4]) -> [u8; 3] {
