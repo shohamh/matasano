@@ -13,6 +13,27 @@ mod tests {
     use std::io::Read;
     use std::fs::File;
     use set1;
+
+    #[test]
+    fn byte_hamming_distance()
+    {
+        assert_eq!(set1::byte_hamming_distance(0x0, 0x0), 0);
+        assert_eq!(set1::byte_hamming_distance(0x1, 0x0), 1);
+        assert_eq!(set1::byte_hamming_distance(0x2, 0x0), 1);
+        assert_eq!(set1::byte_hamming_distance(0x3, 0x0), 2);
+        assert_eq!(set1::byte_hamming_distance(0x3, 0x1), 1);
+        assert_eq!(set1::byte_hamming_distance(0xff, 0xfe), 1);
+        assert_eq!(set1::byte_hamming_distance(0xff, 0x0), 8);
+    }
+
+    #[test]
+    fn hamming_distance()
+    {
+        assert_eq!(set1::hamming_distance(b"this is a tes!", b"wokka wokka!!!"), 33);
+        assert_eq!(set1::hamming_distance(b"this is b test", b"wokka wokka!!!"), 37);
+        assert_eq!(set1::hamming_distance(b"this is a test", b"wokka wokka!!!"), 37);
+    }
+
     #[test]
     fn base64_encode() {
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhcw=="), set1::base64_encode("any carnal pleas".as_bytes()));
@@ -26,19 +47,21 @@ mod tests {
         assert_eq!("any carnal pleasu".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U="));
         assert_eq!("any carnal pleasur".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy"));
         
-        let mut s1c6 = File::open("resources/s1c6.txt").expect("File not found");
+        let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
         let mut contents_s1c6 = String::new();
         s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
         let mut s1c6_decoded_externally = File::open("resources/s1c6_decoded_externally.bin").expect("File not found");
         let mut contents_s1c6_de = String::new();
         s1c6_decoded_externally.read_to_string(&mut contents_s1c6_de).expect("Couldn't read to string");
 
-        assert_eq!(contents_s1c6_de.as_bytes(), set1::base64_decode(&contents_s1c6).as_slice());
+        assert_eq!(contents_s1c6_de.as_bytes(), set1::base64_decode(&contents_s1c6).as_slice())
     }
     #[test]
     fn set1_challenge1() {
-        assert_eq!("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t",
-                    set1::hex_to_base64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"))
+        assert_eq!(
+            "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t",
+            set1::hex_to_base64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+        )
     }
     #[test]
     fn set1_challenge2() {
@@ -75,7 +98,7 @@ mod tests {
 
         println!("Solution: {:?}, with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
 
-        assert_eq!(Some(String::from("Now that the party is jumping\n")), plaintext);
+        assert_eq!(Some(String::from("Now that the party is jumping\n")), plaintext)
     }
     #[test]
     fn set1_challenge5() {
@@ -84,6 +107,42 @@ I go crazy when I hear a cymbal";
         let key = "ICE";
         let ciphertext = set1::repeating_key_xor(plaintext, key);
 
-        assert_eq!(set1::encode_hex(ciphertext.as_bytes()), "b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f");
+        assert_eq!(
+            set1::encode_hex(ciphertext.as_bytes()),
+            "b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
+        )
+    }
+    #[test]
+    fn set1_challenge6() {
+        const MIN_KEYSIZE : usize = 2;
+        const MAX_KEYSIZE : usize = 3;
+        const KEYSIZE_SAMPLES : usize = 10;
+        let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
+        let mut contents_s1c6 = String::new();
+        s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
+
+        let ciphertext = set1::base64_decode(&contents_s1c6);
+
+        let mut chosen_keysize = MIN_KEYSIZE;
+
+        for keysize in MIN_KEYSIZE .. MAX_KEYSIZE {
+            let ciphertext_keysize_samples : Vec<_> = ciphertext.chunks(keysize).take(KEYSIZE_SAMPLES).enumerate().collect();
+            let even_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 0);
+            let odd_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 1);
+            let sample_pairs = even_samples.zip(odd_samples);
+            for (x, y) in sample_pairs {
+                println!("pair: ({:?}, {:?})", x, y);
+            }
+            //TODO: verify that the pairs here are good pairs of chunks of size `keysize`
+            //TODO: calculate the average hamming distance of all the different pairs of chunks
+            //TODO: pick the keysize with the minimum average hamming distance, it's probably the right one. maybe pick like 3 or 4 options instead of just one.
+            //TODO: continue according to instructions on cryptopals website
+
+
+            //println!("pairs: {:#?}", sample_pairs);
+            //let average_hamming_distance = ciphertext_keysize_samples;
+            
+        }
+
     }
 }

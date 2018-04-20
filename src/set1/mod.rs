@@ -28,32 +28,62 @@ pub fn hex_to_base64(hex: &str) -> String
     result
 }
 
+pub fn byte_hamming_distance(byte1: u8, byte2: u8) -> u8 {
+    (byte1 ^ byte2).count_ones() as u8
+}
+
+
+// hamming distance in bits between these two byte slices (must be equal sized)
+pub fn hamming_distance(bytes1: &[u8], bytes2: &[u8]) -> usize {
+    let mut hamming_distance : usize = 0;
+    assert_eq!(bytes1.len(), bytes2.len());
+    for i in 0 .. bytes1.len() {
+        hamming_distance += byte_hamming_distance(bytes1[i], bytes2[i]) as usize;
+    }
+    hamming_distance
+}
+
 pub fn base64_decode(string: &str) -> Vec<u8> {
+
+    fn quad2triplet(buf: [u8; 4]) -> [u8; 3] {
+        [
+            (buf[0] << 2) + (buf[1] >> 4),
+            (buf[1] << 4) + (buf[2] >> 2),
+            (buf[2] << 6) + buf[3]
+        ]
+    }
+
     let b64 = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
     let mut buf : [u8; 4] = [0; 4];
-    let mut padding_begin_index = string.len() - 1;
-    while string.as_bytes()[padding_begin_index] as char == '=' {
-        padding_begin_index -= 1;
-    }
-    let mut result : Vec<u8> = vec![0; ((padding_begin_index + 1) as f64 * 3.0 / 4.0).ceil() as usize];
-    for (v, vo) in string[0..padding_begin_index + 1].as_bytes().chunks(4).zip(result.as_mut_slice().chunks_mut(3)) 
-    {
-        fn quad2triplet(buf: [u8; 4]) -> [u8; 3] {
-            [(buf[0] << 2) + (buf[1] >> 4), (buf[1] << 4) + (buf[2] >> 2), (buf[2] << 6) + buf[3]]
-        }
+    let mut padding_count = 3;
+    let string_len = string.as_bytes().len();
+    const MAX_PADDING_COUNT : usize = 3;
 
-        for i in 0..buf.len()
+    for i in string_len - MAX_PADDING_COUNT .. string_len {
+        if string.as_bytes()[i] as char == '=' {
+            break;
+        } else {
+            padding_count -= 1;
+        }
+    }
+
+    let real_string_len = string_len - padding_count;
+    let mut result : Vec<u8> = vec![0; (real_string_len as f64 * 3.0 / 4.0) as usize];
+    for (quad, out_triplet) in string[0 .. real_string_len].as_bytes().chunks(4).zip(result.as_mut_slice().chunks_mut(3)) 
+    {
+        for i in 0 .. buf.len()
         {
-            buf[i] = match v.get(i) {
+            buf[i] = match quad.get(i) {
                 Some(x) => match b64.find(*x as char) {
                     Some(ind) => ind as u8,
                     None => 0
                 },
                 None => 0
-            };
+            }
         }
-        let volen = vo.len();
-        vo.copy_from_slice(&quad2triplet(buf)[0..volen]);
+        // TODO: remove this variable when NLL is live
+        let output_triplet_len = out_triplet.len();
+        out_triplet.copy_from_slice(&quad2triplet(buf)[0 .. output_triplet_len]);
     }
     result
 }
@@ -65,7 +95,12 @@ pub fn base64_encode(bytes: &[u8]) -> String {
     for (v, vo) in bytes.chunks(3).zip(result.as_mut_slice().chunks_mut(4)) 
     {
         fn triplet2quad(buf: [u8; 3]) -> [u8; 4] {
-            [buf[0] >> 2, ((buf[0] & 0b0000_0011) << 4) + (buf[1] >> 4), ((buf[1] & 0b0000_1111) << 2) + (buf[2] >> 6), buf[2] & 0b0011_1111]
+            [
+                buf[0] >> 2,
+                ((buf[0] & 0b0000_0011) << 4) + (buf[1] >> 4),
+                ((buf[1] & 0b0000_1111) << 2) + (buf[2] >> 6),
+                buf[2] & 0b0011_1111
+            ]
         }
 
         for i in 0..buf.len()
@@ -82,11 +117,14 @@ pub fn base64_encode(bytes: &[u8]) -> String {
     for _ in 0 .. padding_length {
         result.push(64);
     }
-    return String::from_utf8(result.iter().map(|x| b64[*x as usize]).collect()).unwrap();
+    return String::from_utf8(result.iter()
+                                   .map(|x| b64[*x as usize])
+                                   .collect()
+                            ).unwrap();
 }
 
 
-// convert 0xc to 12, can fail nicely
+// convert c to 12, can fail nicely
 pub fn hex_as_decimal(ch : char) -> Result<u8, String> {
     match ch {
         '0' ... '9' => Ok((ch as u8) - ('0' as u8)),
