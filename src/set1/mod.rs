@@ -43,6 +43,10 @@ pub fn hamming_distance(bytes1: &[u8], bytes2: &[u8]) -> usize {
     hamming_distance
 }
 
+pub fn normalized_hamming_distance(bytes1: &[u8], bytes2: &[u8]) -> f64 {
+    hamming_distance(bytes1, bytes2) as f64 / bytes1.len() as f64
+}
+
 pub fn base64_decode(string: &str) -> Vec<u8> {
 
     fn quad2triplet(buf: [u8; 4]) -> [u8; 3] {
@@ -277,4 +281,18 @@ pub fn repeating_key_xor(plaintext: &str, key: &str) -> String {
         key_index = (key_index + 1) % key.len();
     }
     ciphertext
+}
+
+
+pub fn transpose_matrix(matrix: Vec<u8>, columns: usize) -> Vec<u8> {
+    let mut new_matrix = vec![0; matrix.len()];
+    println!("matrix.len(): {} columns: {} rows: {}", matrix.len(), columns, matrix.len() / columns);
+    let rows = matrix.len() / columns;
+    for i in 0 .. columns {
+        for j in 0 .. rows {
+            //TODO: fix
+            new_matrix[j * columns + i] = matrix[i * columns + j];
+        }
+    }
+    new_matrix
 }

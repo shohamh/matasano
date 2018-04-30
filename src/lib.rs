@@ -7,9 +7,9 @@ pub mod set6;
 pub mod set7;
 pub mod set8;
 
-
 #[cfg(test)]
 mod tests {
+    use std::f64;
     use std::io::Read;
     use std::fs::File;
     use set1;
@@ -115,8 +115,8 @@ I go crazy when I hear a cymbal";
     #[test]
     fn set1_challenge6() {
         const MIN_KEYSIZE : usize = 2;
-        const MAX_KEYSIZE : usize = 3;
-        const KEYSIZE_SAMPLES : usize = 10;
+        const MAX_KEYSIZE : usize = 40;
+        const KEYSIZE_SAMPLES : usize = 50;
         let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
         let mut contents_s1c6 = String::new();
         s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
@@ -124,17 +124,20 @@ I go crazy when I hear a cymbal";
         let ciphertext = set1::base64_decode(&contents_s1c6);
 
         let mut chosen_keysize = MIN_KEYSIZE;
+        let mut min_hamming_distance = f64::MAX;
 
         for keysize in MIN_KEYSIZE .. MAX_KEYSIZE {
             let ciphertext_keysize_samples : Vec<_> = ciphertext.chunks(keysize).take(KEYSIZE_SAMPLES).enumerate().collect();
             let even_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 0);
             let odd_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 1);
             let sample_pairs = even_samples.zip(odd_samples);
-            for (x, y) in sample_pairs {
-                println!("pair: ({:?}, {:?})", x, y);
+            let average_hamming_distance_of_keysize = sample_pairs.map(|((_lenx, x), (_leny, y))| set1::normalized_hamming_distance(x, y)).sum::<f64>() / KEYSIZE_SAMPLES as f64;
+            println!("average hamming distance of keysize {} is {:?}", keysize, average_hamming_distance_of_keysize);
+            if average_hamming_distance_of_keysize < min_hamming_distance {
+                min_hamming_distance = average_hamming_distance_of_keysize;
+                chosen_keysize = keysize;
             }
-            //TODO: verify that the pairs here are good pairs of chunks of size `keysize`
-            //TODO: calculate the average hamming distance of all the different pairs of chunks
+
             //TODO: pick the keysize with the minimum average hamming distance, it's probably the right one. maybe pick like 3 or 4 options instead of just one.
             //TODO: continue according to instructions on cryptopals website
 
@@ -143,6 +146,14 @@ I go crazy when I hear a cymbal";
             //let average_hamming_distance = ciphertext_keysize_samples;
             
         }
-
+        println!("chosen keysize: {} with average hamming distance: {}", chosen_keysize, min_hamming_distance);
+        for chunk in ciphertext.chunks(chosen_keysize) {
+            println!("{:?}", chunk);
+        }
+        let transposed = set1::transpose_matrix(ciphertext, chosen_keysize);
+        for chunk in transposed.chunks(29) {
+            println!("{:?}", chunk);
+        }
+        //println!("{:?}", transposed)
     }
 }
