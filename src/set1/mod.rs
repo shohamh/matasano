@@ -267,7 +267,7 @@ pub fn similarity_to_english(buf: &[u8]) -> f64 {
         let expected_f = match eng_freq.get(&(c as u8)) {
             Some(&freq) => freq,
             None => 0.0
-        };        
+        };
         chi_squared += (f - expected_f).powi(2) / expected_f;
     }
     chi_squared
@@ -284,14 +284,16 @@ pub fn repeating_key_xor(plaintext: &str, key: &str) -> String {
 }
 
 
-pub fn transpose_matrix(matrix: Vec<u8>, columns: usize) -> Vec<u8> {
-    let mut new_matrix = vec![0; matrix.len()];
+pub fn transpose_matrix(matrix: Vec<Vec<u8>>, columns: usize) -> Vec<Vec<u8>> {
+    let mut new_matrix : Vec<Vec<u8>>= (0..matrix.len()).map(|_| Vec::with_capacity(columns)).collect();
+    println!("matrix: {:?}", new_matrix);
     println!("matrix.len(): {} columns: {} rows: {}", matrix.len(), columns, matrix.len() / columns);
     let rows = matrix.len() / columns;
     for i in 0 .. columns {
         for j in 0 .. rows {
-            //TODO: fix
-            new_matrix[j * columns + i] = matrix[i * columns + j];
+            //TODO: fix the thing where the size of the new vector is 0 instead of the appropriate size (columns?)
+            //      maybe zfill * columns
+            new_matrix[j][i] = matrix[i][j];
         }
     }
     new_matrix

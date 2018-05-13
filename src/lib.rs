@@ -39,14 +39,14 @@ mod tests {
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhcw=="), set1::base64_encode("any carnal pleas".as_bytes()));
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3U="), set1::base64_encode("any carnal pleasu".as_bytes()));
         assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3Vy"), set1::base64_encode("any carnal pleasur".as_bytes()));
-        
+
     }
     #[test]
     fn base64_decode() {
         assert_eq!("any carnal pleas".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhcw=="));
         assert_eq!("any carnal pleasu".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U="));
         assert_eq!("any carnal pleasur".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy"));
-        
+
         let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
         let mut contents_s1c6 = String::new();
         s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
@@ -75,7 +75,7 @@ mod tests {
         let decoded_string = set1::decode_hex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
         let (plaintext, min_key, min_chi_squared) = set1::decrypt_single_byte_xor_english(&decoded_string);
         println!("Solution: '{:?}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
-        
+
         assert_eq!("Cooking MC's like a pound of bacon", plaintext.unwrap());
     }
 
@@ -85,7 +85,7 @@ mod tests {
         let mut contents = String::new();
         f.read_to_string(&mut contents).expect("Couldn't read to string");
         let mut lines = contents.lines().map(set1::decode_hex);
-        
+
         let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines.next().unwrap());
         for line in lines {
             let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&line);
@@ -144,16 +144,17 @@ I go crazy when I hear a cymbal";
 
             //println!("pairs: {:#?}", sample_pairs);
             //let average_hamming_distance = ciphertext_keysize_samples;
-            
+
         }
         println!("chosen keysize: {} with average hamming distance: {}", chosen_keysize, min_hamming_distance);
         for chunk in ciphertext.chunks(chosen_keysize) {
             println!("{:?}", chunk);
         }
-        let transposed = set1::transpose_matrix(ciphertext, chosen_keysize);
+        println!("Ciphertext length: {} bytes", ciphertext.len());
+        let transposed = set1::transpose_matrix(ciphertext.chunks(chosen_keysize).map(|chunk| chunk.to_vec()).collect(), chosen_keysize);
         for chunk in transposed.chunks(29) {
             println!("{:?}", chunk);
         }
-        //println!("{:?}", transposed)
+        println!("{:?}", transposed)
     }
 }
