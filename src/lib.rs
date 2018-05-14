@@ -9,14 +9,12 @@ pub mod set8;
 
 #[cfg(test)]
 mod tests {
-    use std::f64;
-    use std::io::Read;
-    use std::fs::File;
     use set1;
+    use std::f64;
+    use std::fs::read_to_string;
 
     #[test]
-    fn byte_hamming_distance()
-    {
+    fn byte_hamming_distance() {
         assert_eq!(set1::byte_hamming_distance(0x0, 0x0), 0);
         assert_eq!(set1::byte_hamming_distance(0x1, 0x0), 1);
         assert_eq!(set1::byte_hamming_distance(0x2, 0x0), 1);
@@ -27,34 +25,59 @@ mod tests {
     }
 
     #[test]
-    fn hamming_distance()
-    {
-        assert_eq!(set1::hamming_distance(b"this is a tes!", b"wokka wokka!!!"), 33);
-        assert_eq!(set1::hamming_distance(b"this is b test", b"wokka wokka!!!"), 37);
-        assert_eq!(set1::hamming_distance(b"this is a test", b"wokka wokka!!!"), 37);
+    fn hamming_distance() {
+        assert_eq!(
+            set1::hamming_distance(b"this is a tes!", b"wokka wokka!!!"),
+            33
+        );
+        assert_eq!(
+            set1::hamming_distance(b"this is b test", b"wokka wokka!!!"),
+            37
+        );
+        assert_eq!(
+            set1::hamming_distance(b"this is a test", b"wokka wokka!!!"),
+            37
+        );
     }
 
     #[test]
     fn base64_encode() {
-        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhcw=="), set1::base64_encode("any carnal pleas".as_bytes()));
-        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3U="), set1::base64_encode("any carnal pleasu".as_bytes()));
-        assert_eq!(String::from("YW55IGNhcm5hbCBwbGVhc3Vy"), set1::base64_encode("any carnal pleasur".as_bytes()));
-
+        assert_eq!(
+            String::from("YW55IGNhcm5hbCBwbGVhcw=="),
+            set1::base64_encode("any carnal pleas".as_bytes())
+        );
+        assert_eq!(
+            String::from("YW55IGNhcm5hbCBwbGVhc3U="),
+            set1::base64_encode("any carnal pleasu".as_bytes())
+        );
+        assert_eq!(
+            String::from("YW55IGNhcm5hbCBwbGVhc3Vy"),
+            set1::base64_encode("any carnal pleasur".as_bytes())
+        );
     }
     #[test]
     fn base64_decode() {
-        assert_eq!("any carnal pleas".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhcw=="));
-        assert_eq!("any carnal pleasu".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U="));
-        assert_eq!("any carnal pleasur".as_bytes().to_vec(), set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy"));
+        assert_eq!(
+            "any carnal pleas".as_bytes().to_vec(),
+            set1::base64_decode("YW55IGNhcm5hbCBwbGVhcw==")
+        );
+        assert_eq!(
+            "any carnal pleasu".as_bytes().to_vec(),
+            set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3U=")
+        );
+        assert_eq!(
+            "any carnal pleasur".as_bytes().to_vec(),
+            set1::base64_decode("YW55IGNhcm5hbCBwbGVhc3Vy")
+        );
 
-        let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
-        let mut contents_s1c6 = String::new();
-        s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
-        let mut s1c6_decoded_externally = File::open("resources/s1c6_decoded_externally.bin").expect("File not found");
-        let mut contents_s1c6_de = String::new();
-        s1c6_decoded_externally.read_to_string(&mut contents_s1c6_de).expect("Couldn't read to string");
+        let contents_s1c6 = read_to_string("resources/s1c6_no_newlines.txt").unwrap();
+        // decoded externally: 
+        let contents_s1c6_de = read_to_string("resources/s1c6_decoded_externally.bin").unwrap();
 
-        assert_eq!(contents_s1c6_de.as_bytes(), set1::base64_decode(&contents_s1c6).as_slice())
+        assert_eq!(
+            contents_s1c6_de.as_bytes(),
+            set1::base64_decode(&contents_s1c6).as_slice()
+        )
     }
     #[test]
     fn set1_challenge1() {
@@ -66,29 +89,38 @@ mod tests {
     #[test]
     fn set1_challenge2() {
         assert_eq!(
-            set1::fixed_xor(&set1::decode_hex("1c0111001f010100061a024b53535009181c"), &set1::decode_hex("686974207468652062756c6c277320657965")),
+            set1::fixed_xor(
+                &set1::decode_hex("1c0111001f010100061a024b53535009181c"),
+                &set1::decode_hex("686974207468652062756c6c277320657965")
+            ),
             set1::decode_hex("746865206b696420646f6e277420706c6179")
         )
     }
     #[test]
     fn set1_challenge3() {
-        let decoded_string = set1::decode_hex("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
-        let (plaintext, min_key, min_chi_squared) = set1::decrypt_single_byte_xor_english(&decoded_string);
-        println!("Solution: '{:?}', with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
+        let decoded_string = set1::decode_hex(
+            "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736",
+        );
+        let (plaintext, min_key, min_chi_squared) =
+            set1::decrypt_single_byte_xor_english(&decoded_string);
+        println!(
+            "Solution: '{:?}', with key: {}, Chi-squared index of similarity (lower is better): {}",
+            plaintext, min_key, min_chi_squared
+        );
 
         assert_eq!("Cooking MC's like a pound of bacon", plaintext.unwrap());
     }
 
     #[test]
     fn set1_challenge4() {
-        let mut f = File::open("resources/s1c4.txt").expect("File not found");
-        let mut contents = String::new();
-        f.read_to_string(&mut contents).expect("Couldn't read to string");
+        let contents = read_to_string("resources/s1c4.txt").unwrap();
         let mut lines = contents.lines().map(set1::decode_hex);
 
-        let (mut plaintext, mut min_key, mut min_chi_squared) = set1::decrypt_single_byte_xor_english(&lines.next().unwrap());
+        let (mut plaintext, mut min_key, mut min_chi_squared) =
+            set1::decrypt_single_byte_xor_english(&lines.next().unwrap());
         for line in lines {
-            let (attempted_decryption, temp_key, temp_chi_squared) = set1::decrypt_single_byte_xor_english(&line);
+            let (attempted_decryption, temp_key, temp_chi_squared) =
+                set1::decrypt_single_byte_xor_english(&line);
             if temp_chi_squared < min_chi_squared {
                 plaintext = attempted_decryption;
                 min_key = temp_key;
@@ -96,9 +128,15 @@ mod tests {
             }
         }
 
-        println!("Solution: {:?}, with key: {}, Chi-squared index of similarity (lower is better): {}", plaintext, min_key, min_chi_squared);
+        println!(
+            "Solution: {:?}, with key: {}, Chi-squared index of similarity (lower is better): {}",
+            plaintext, min_key, min_chi_squared
+        );
 
-        assert_eq!(Some(String::from("Now that the party is jumping\n")), plaintext)
+        assert_eq!(
+            Some(String::from("Now that the party is jumping\n")),
+            plaintext
+        )
     }
     #[test]
     fn set1_challenge5() {
@@ -114,47 +152,80 @@ I go crazy when I hear a cymbal";
     }
     #[test]
     fn set1_challenge6() {
-        const MIN_KEYSIZE : usize = 2;
-        const MAX_KEYSIZE : usize = 40;
-        const KEYSIZE_SAMPLES : usize = 50;
-        let mut s1c6 = File::open("resources/s1c6_no_newlines.txt").expect("File not found");
-        let mut contents_s1c6 = String::new();
-        s1c6.read_to_string(&mut contents_s1c6).expect("Couldn't read to string");
+        const MIN_KEYSIZE: usize = 2;
+        const MAX_KEYSIZE: usize = 40;
+        const KEYSIZE_SAMPLES: usize = 50;
+        let contents_s1c6 = read_to_string("resources/s1c6_no_newlines.txt").unwrap();
 
         let ciphertext = set1::base64_decode(&contents_s1c6);
 
         let mut chosen_keysize = MIN_KEYSIZE;
         let mut min_hamming_distance = f64::MAX;
 
-        for keysize in MIN_KEYSIZE .. MAX_KEYSIZE {
-            let ciphertext_keysize_samples : Vec<_> = ciphertext.chunks(keysize).take(KEYSIZE_SAMPLES).enumerate().collect();
-            let even_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 0);
-            let odd_samples = ciphertext_keysize_samples.iter().filter(|(index, _chunk)| index % 2 == 1);
+        for keysize in MIN_KEYSIZE..MAX_KEYSIZE {
+            let ciphertext_keysize_samples: Vec<_> = ciphertext
+                .chunks(keysize)
+                .take(KEYSIZE_SAMPLES)
+                .enumerate()
+                .collect();
+            let even_samples = ciphertext_keysize_samples
+                .iter()
+                .filter(|(index, _chunk)| index % 2 == 0);
+            let odd_samples = ciphertext_keysize_samples
+                .iter()
+                .filter(|(index, _chunk)| index % 2 == 1);
             let sample_pairs = even_samples.zip(odd_samples);
-            let average_hamming_distance_of_keysize = sample_pairs.map(|((_lenx, x), (_leny, y))| set1::normalized_hamming_distance(x, y)).sum::<f64>() / KEYSIZE_SAMPLES as f64;
-            println!("average hamming distance of keysize {} is {:?}", keysize, average_hamming_distance_of_keysize);
+            let average_hamming_distance_of_keysize = sample_pairs
+                .map(|((_lenx, x), (_leny, y))| set1::normalized_hamming_distance(x, y))
+                .sum::<f64>()
+                / KEYSIZE_SAMPLES as f64;
+            /*println!(
+                "average hamming distance of keysize {} is {:?}",
+                keysize, average_hamming_distance_of_keysize
+            );*/
             if average_hamming_distance_of_keysize < min_hamming_distance {
                 min_hamming_distance = average_hamming_distance_of_keysize;
                 chosen_keysize = keysize;
             }
 
-            //TODO: pick the keysize with the minimum average hamming distance, it's probably the right one. maybe pick like 3 or 4 options instead of just one.
-            //TODO: continue according to instructions on cryptopals website
-
-
             //println!("pairs: {:#?}", sample_pairs);
             //let average_hamming_distance = ciphertext_keysize_samples;
-
         }
-        println!("chosen keysize: {} with average hamming distance: {}", chosen_keysize, min_hamming_distance);
+        /*println!(
+            "chosen keysize: {} with average hamming distance: {}",
+            chosen_keysize, min_hamming_distance
+        );
         for chunk in ciphertext.chunks(chosen_keysize) {
             println!("{:?}", chunk);
         }
         println!("Ciphertext length: {} bytes", ciphertext.len());
-        let transposed = set1::transpose_matrix(ciphertext.chunks(chosen_keysize).map(|chunk| chunk.to_vec()).collect(), chosen_keysize);
-        for chunk in transposed.chunks(29) {
-            println!("{:?}", chunk);
-        }
-        println!("{:?}", transposed)
+        */
+        let transposed = set1::transpose_matrix(
+            ciphertext
+                .chunks(chosen_keysize)
+                .map(|chunk| chunk.to_vec())
+                .collect(),
+            chosen_keysize,
+        );
+        let transposed_rows = ciphertext.chunks(chosen_keysize).len();
+        let _transposed_columns = chosen_keysize;
+
+        //println!("{:?}", transposed);
+        let decrypted_transposed: Vec<Vec<u8>> = transposed
+            .iter()
+            .map(|ciphertext| set1::decrypt_single_byte_xor_english(ciphertext).0)
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap().as_bytes().into())
+            .collect();
+
+        let decrypted = set1::transpose_matrix(decrypted_transposed, transposed_rows);
+
+        let string_parts : Vec<String> = decrypted.iter().map(|vec| String::from_utf8((*vec).clone()).unwrap()).collect();
+
+        let solution = string_parts.concat();
+
+        let solution_from_file = read_to_string("resources/s1c6_solution.txt").unwrap();
+
+        assert_eq!(solution, solution_from_file);
     }
 }
