@@ -10,7 +10,6 @@ pub mod set8;
 #[cfg(test)]
 mod tests {
     use set1;
-    use std::f64;
     use std::fs::read_to_string;
 
     #[test]
@@ -152,78 +151,9 @@ I go crazy when I hear a cymbal";
     }
     #[test]
     fn set1_challenge6() {
-        const MIN_KEYSIZE: usize = 2;
-        const MAX_KEYSIZE: usize = 40;
-        const KEYSIZE_SAMPLES: usize = 50;
         let contents_s1c6 = read_to_string("resources/s1c6_no_newlines.txt").unwrap();
-
         let ciphertext = set1::base64_decode(&contents_s1c6);
-
-        let mut chosen_keysize = MIN_KEYSIZE;
-        let mut min_hamming_distance = f64::MAX;
-
-        for keysize in MIN_KEYSIZE..MAX_KEYSIZE {
-            let ciphertext_keysize_samples: Vec<_> = ciphertext
-                .chunks(keysize)
-                .take(KEYSIZE_SAMPLES)
-                .enumerate()
-                .collect();
-            let even_samples = ciphertext_keysize_samples
-                .iter()
-                .filter(|(index, _chunk)| index % 2 == 0);
-            let odd_samples = ciphertext_keysize_samples
-                .iter()
-                .filter(|(index, _chunk)| index % 2 == 1);
-            let sample_pairs = even_samples.zip(odd_samples);
-            let average_hamming_distance_of_keysize = sample_pairs
-                .map(|((_lenx, x), (_leny, y))| set1::normalized_hamming_distance(x, y))
-                .sum::<f64>()
-                / KEYSIZE_SAMPLES as f64;
-            /*println!(
-                "average hamming distance of keysize {} is {:?}",
-                keysize, average_hamming_distance_of_keysize
-            );*/
-            if average_hamming_distance_of_keysize < min_hamming_distance {
-                min_hamming_distance = average_hamming_distance_of_keysize;
-                chosen_keysize = keysize;
-            }
-
-            //println!("pairs: {:#?}", sample_pairs);
-            //let average_hamming_distance = ciphertext_keysize_samples;
-        }
-        /*println!(
-            "chosen keysize: {} with average hamming distance: {}",
-            chosen_keysize, min_hamming_distance
-        );
-        for chunk in ciphertext.chunks(chosen_keysize) {
-            println!("{:?}", chunk);
-        }
-        println!("Ciphertext length: {} bytes", ciphertext.len());
-        */
-        let transposed = set1::transpose_matrix(
-            ciphertext
-                .chunks(chosen_keysize)
-                .map(|chunk| chunk.to_vec())
-                .collect(),
-            chosen_keysize,
-        );
-        let transposed_rows = ciphertext.chunks(chosen_keysize).len();
-        let _transposed_columns = chosen_keysize;
-
-        //println!("{:?}", transposed);
-        let decrypted_transposed: Vec<Vec<u8>> = transposed
-            .iter()
-            .map(|ciphertext| set1::decrypt_single_byte_xor_english(ciphertext).0)
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap().as_bytes().into())
-            .collect();
-
-        let decrypted = set1::transpose_matrix(decrypted_transposed, transposed_rows);
-
-        let string_parts : Vec<String> = decrypted.iter().map(|vec| String::from_utf8((*vec).clone()).unwrap()).collect();
-
-        let solution = string_parts.concat();
-
+        let solution = set1::break_vigenere(&ciphertext);
         let solution_from_file = read_to_string("resources/s1c6_solution.txt").unwrap();
 
         assert_eq!(solution, solution_from_file);
