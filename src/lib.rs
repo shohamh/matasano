@@ -70,7 +70,7 @@ mod tests {
         );
 
         let contents_s1c6 = read_to_string("resources/s1c6_no_newlines.txt").unwrap();
-        // decoded externally: 
+        // decoded externally:
         let contents_s1c6_de = read_to_string("resources/s1c6_decoded_externally.bin").unwrap();
 
         assert_eq!(
@@ -166,6 +166,5 @@ I go crazy when I hear a cymbal";
         let ciphertext = set1::base64_decode(&contents_s1c7);
         println!("{:?}", ciphertext);
     }
-
 
 }

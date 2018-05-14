@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 use std::collections::LinkedList;
+use std::f64;
 use std::iter::FromIterator;
 use std::string::FromUtf8Error;
-use std::f64;
-
 
 pub fn hex_to_base64(hex: &str) -> String {
     let b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
@@ -379,42 +378,42 @@ pub fn transpose_matrix(matrix: Vec<Vec<u8>>, columns: usize) -> Vec<Vec<u8>> {
 // break repeating key xor
 pub fn break_vigenere(ciphertext: &[u8]) -> String {
     const MIN_KEYSIZE: usize = 2;
-        const MAX_KEYSIZE: usize = 40;
-        const KEYSIZE_SAMPLES: usize = 50;
+    const MAX_KEYSIZE: usize = 40;
+    const KEYSIZE_SAMPLES: usize = 50;
 
-        let mut chosen_keysize = MIN_KEYSIZE;
-        let mut min_hamming_distance = f64::MAX;
+    let mut chosen_keysize = MIN_KEYSIZE;
+    let mut min_hamming_distance = f64::MAX;
 
-        for keysize in MIN_KEYSIZE..MAX_KEYSIZE {
-            let ciphertext_keysize_samples: Vec<_> = ciphertext
-                .chunks(keysize)
-                .take(KEYSIZE_SAMPLES)
-                .enumerate()
-                .collect();
-            let even_samples = ciphertext_keysize_samples
-                .iter()
-                .filter(|(index, _chunk)| index % 2 == 0);
-            let odd_samples = ciphertext_keysize_samples
-                .iter()
-                .filter(|(index, _chunk)| index % 2 == 1);
-            let sample_pairs = even_samples.zip(odd_samples);
-            let average_hamming_distance_of_keysize = sample_pairs
-                .map(|((_lenx, x), (_leny, y))| normalized_hamming_distance(x, y))
-                .sum::<f64>()
-                / KEYSIZE_SAMPLES as f64;
-            /*println!(
+    for keysize in MIN_KEYSIZE..MAX_KEYSIZE {
+        let ciphertext_keysize_samples: Vec<_> = ciphertext
+            .chunks(keysize)
+            .take(KEYSIZE_SAMPLES)
+            .enumerate()
+            .collect();
+        let even_samples = ciphertext_keysize_samples
+            .iter()
+            .filter(|(index, _chunk)| index % 2 == 0);
+        let odd_samples = ciphertext_keysize_samples
+            .iter()
+            .filter(|(index, _chunk)| index % 2 == 1);
+        let sample_pairs = even_samples.zip(odd_samples);
+        let average_hamming_distance_of_keysize = sample_pairs
+            .map(|((_lenx, x), (_leny, y))| normalized_hamming_distance(x, y))
+            .sum::<f64>()
+            / KEYSIZE_SAMPLES as f64;
+        /*println!(
                 "average hamming distance of keysize {} is {:?}",
                 keysize, average_hamming_distance_of_keysize
             );*/
-            if average_hamming_distance_of_keysize < min_hamming_distance {
-                min_hamming_distance = average_hamming_distance_of_keysize;
-                chosen_keysize = keysize;
-            }
-
-            //println!("pairs: {:#?}", sample_pairs);
-            //let average_hamming_distance = ciphertext_keysize_samples;
+        if average_hamming_distance_of_keysize < min_hamming_distance {
+            min_hamming_distance = average_hamming_distance_of_keysize;
+            chosen_keysize = keysize;
         }
-        /*println!(
+
+        //println!("pairs: {:#?}", sample_pairs);
+        //let average_hamming_distance = ciphertext_keysize_samples;
+    }
+    /*println!(
             "chosen keysize: {} with average hamming distance: {}",
             chosen_keysize, min_hamming_distance
         );
@@ -423,30 +422,32 @@ pub fn break_vigenere(ciphertext: &[u8]) -> String {
         }
         println!("Ciphertext length: {} bytes", ciphertext.len());
         */
-        let transposed = transpose_matrix(
-            ciphertext
-                .chunks(chosen_keysize)
-                .map(|chunk| chunk.to_vec())
-                .collect(),
-            chosen_keysize,
-        );
-        let transposed_rows = ciphertext.chunks(chosen_keysize).len();
-        let _transposed_columns = chosen_keysize;
+    let transposed = transpose_matrix(
+        ciphertext
+            .chunks(chosen_keysize)
+            .map(|chunk| chunk.to_vec())
+            .collect(),
+        chosen_keysize,
+    );
+    let transposed_rows = ciphertext.chunks(chosen_keysize).len();
+    let _transposed_columns = chosen_keysize;
 
-        //println!("{:?}", transposed);
-        let decrypted_transposed: Vec<Vec<u8>> = transposed
-            .iter()
-            .map(|ciphertext| decrypt_single_byte_xor_english(ciphertext).0)
-            .filter(|x| x.is_some())
-            .map(|x| x.unwrap().as_bytes().into())
-            .collect();
+    //println!("{:?}", transposed);
+    let decrypted_transposed: Vec<Vec<u8>> = transposed
+        .iter()
+        .map(|ciphertext| decrypt_single_byte_xor_english(ciphertext).0)
+        .filter(|x| x.is_some())
+        .map(|x| x.unwrap().as_bytes().into())
+        .collect();
 
-        let decrypted = transpose_matrix(decrypted_transposed, transposed_rows);
+    let decrypted = transpose_matrix(decrypted_transposed, transposed_rows);
 
-        let string_parts : Vec<String> = decrypted.iter().map(|vec| String::from_utf8((*vec).clone()).unwrap()).collect();
+    let string_parts: Vec<String> = decrypted
+        .iter()
+        .map(|vec| String::from_utf8((*vec).clone()).unwrap())
+        .collect();
 
-        let solution = string_parts.concat();
+    let solution = string_parts.concat();
 
-        solution
-
+    solution
 }
