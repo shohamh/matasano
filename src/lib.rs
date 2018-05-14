@@ -228,4 +228,14 @@ I go crazy when I hear a cymbal";
 
         assert_eq!(solution, solution_from_file);
     }
+
+    #[test]
+    fn set1_challenge7() {
+        let contents_s1c7 = read_to_string("resources/s1c7_no_newlines.txt").unwrap();
+
+        let ciphertext = set1::base64_decode(&contents_s1c7);
+        println!("{:?}", ciphertext);
+    }
+
+
 }
