@@ -12,6 +12,7 @@ mod tests {
     use set1;
     use std::fs::read_to_string;
 
+
     #[test]
     fn byte_hamming_distance() {
         assert_eq!(set1::byte_hamming_distance(0x0, 0x0), 0);

@@ -18,8 +18,12 @@ pub fn hex_to_base64(hex: &str) -> String {
             }
         }
         result.push(b64[(buf[0] >> 2) as usize] as char);
-        result.push(b64[(((buf[0] & 0b0000_0011) << 4) + (buf[1] >> 4)) as usize] as char);
-        result.push(b64[(((buf[1] & 0b0000_1111) << 2) + (buf[2] >> 6)) as usize] as char);
+        result.push(
+            b64[(((buf[0] & 0b0000_0011) << 4) + (buf[1] >> 4)) as usize] as char,
+        );
+        result.push(
+            b64[(((buf[1] & 0b0000_1111) << 2) + (buf[2] >> 6)) as usize] as char,
+        );
         result.push(b64[(buf[2] & 0b0011_1111) as usize] as char);
         buf = [0; 3];
         i += 6;
@@ -38,6 +42,7 @@ pub fn hamming_distance(bytes1: &[u8], bytes2: &[u8]) -> usize {
     for i in 0..bytes1.len() {
         hamming_distance += byte_hamming_distance(bytes1[i], bytes2[i]) as usize;
     }
+
     hamming_distance
 }
 
@@ -54,7 +59,9 @@ pub fn base64_decode(string: &str) -> Vec<u8> {
         ]
     }
 
-    let b64 = String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+    let b64 = String::from(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    );
     let mut buf: [u8; 4] = [0; 4];
     let mut padding_count = 3;
     let string_len = string.as_bytes().len();
@@ -70,17 +77,19 @@ pub fn base64_decode(string: &str) -> Vec<u8> {
 
     let real_string_len = string_len - padding_count;
     let mut result: Vec<u8> = vec![0; (real_string_len as f64 * 3.0 / 4.0) as usize];
-    for (quad, out_triplet) in string[0..real_string_len]
-        .as_bytes()
-        .chunks(4)
-        .zip(result.as_mut_slice().chunks_mut(3))
+    for (quad, out_triplet) in
+        string[0..real_string_len].as_bytes().chunks(4).zip(
+            result.as_mut_slice().chunks_mut(3),
+        )
     {
         for i in 0..buf.len() {
             buf[i] = match quad.get(i) {
-                Some(x) => match b64.find(*x as char) {
-                    Some(ind) => ind as u8,
-                    None => 0,
-                },
+                Some(x) => {
+                    match b64.find(*x as char) {
+                        Some(ind) => ind as u8,
+                        None => 0,
+                    }
+                }
                 None => 0,
             }
         }
@@ -390,17 +399,21 @@ pub fn break_vigenere(ciphertext: &[u8]) -> String {
             .take(KEYSIZE_SAMPLES)
             .enumerate()
             .collect();
-        let even_samples = ciphertext_keysize_samples
-            .iter()
-            .filter(|(index, _chunk)| index % 2 == 0);
-        let odd_samples = ciphertext_keysize_samples
-            .iter()
-            .filter(|(index, _chunk)| index % 2 == 1);
+        let even_samples = ciphertext_keysize_samples.iter().filter(
+            |(index, _chunk)| {
+                index % 2 == 0
+            },
+        );
+        let odd_samples = ciphertext_keysize_samples.iter().filter(
+            |(index, _chunk)| {
+                index % 2 == 1
+            },
+        );
         let sample_pairs = even_samples.zip(odd_samples);
         let average_hamming_distance_of_keysize = sample_pairs
             .map(|((_lenx, x), (_leny, y))| normalized_hamming_distance(x, y))
-            .sum::<f64>()
-            / KEYSIZE_SAMPLES as f64;
+            .sum::<f64>() /
+            KEYSIZE_SAMPLES as f64;
         /*println!(
                 "average hamming distance of keysize {} is {:?}",
                 keysize, average_hamming_distance_of_keysize

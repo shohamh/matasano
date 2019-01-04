@@ -2,7 +2,8 @@
 name = "matasano"
 version = "0.1.0"
 authors = ["shoham"]
+edition = "2018"
 
 [dependencies]
-ordered-float = "0.5.0"
-num-traits = "0.2.2"
+ordered-float = "1.0.1"
+num-traits = "0.2.6"
