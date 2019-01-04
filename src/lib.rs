@@ -9,7 +9,7 @@ pub mod set8;
 
 #[cfg(test)]
 mod tests {
-    use set1;
+    use crate::set1;
     use std::fs::read_to_string;
 
 
