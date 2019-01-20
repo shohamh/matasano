@@ -10,8 +10,8 @@ pub mod set8;
 #[cfg(test)]
 mod tests {
     use crate::set1;
+    use arrayref;
     use std::fs::read_to_string;
-
 
     #[test]
     fn byte_hamming_distance() {
@@ -159,13 +159,47 @@ I go crazy when I hear a cymbal";
 
         assert_eq!(solution, solution_from_file);
     }
+    #[test]
+    fn transpose_matrix() {
+        let matrix = vec![
+            vec![0, 1, 2, 3],
+            vec![4, 5, 6, 7],
+            vec![8, 9, 10, 11],
+            vec![12, 13, 14, 15],
+        ];
+
+        assert_eq!(
+            set1::transpose_matrix(matrix.clone(), 4),
+            vec![
+                vec![0, 4, 8, 12],
+                vec![1, 5, 9, 13],
+                vec![2, 6, 10, 14],
+                vec![3, 7, 11, 15]
+            ]
+        );
+
+        assert_eq!(
+            matrix.clone(),
+            set1::transpose_matrix(
+                set1::transpose_matrix(matrix.clone(), 4),
+                4
+            )
+        );
+    }
 
     #[test]
     fn set1_challenge7() {
         let contents_s1c7 = read_to_string("resources/s1c7_no_newlines.txt").unwrap();
-
+        let key : &[u8; 16] = arrayref::array_ref!("YELLOW SUBMARINE".as_bytes(), 0, 16);
         let ciphertext = set1::base64_decode(&contents_s1c7);
-        println!("{:?}", ciphertext);
+        let plaintext = set1::aes::aes_128_ecb(&ciphertext, key);
+        println!("ciphertext: {:?}", ciphertext);
+        println!("plaintext: {:?}", plaintext);
+    }
+
+    #[test]
+    fn aes_round_constants() {
+        assert_eq!(set1::aes::round_constants(10), [0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000, 0x20000000, 0x40000000, 0x80000000, 0x1B000000, 0x36000000]);
     }
 
 }
