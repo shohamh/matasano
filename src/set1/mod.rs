@@ -563,7 +563,7 @@ pub mod aes {
     }
 
     fn add_round_key(block: Block, round_key: Block) -> Block {
-        block.map(|byte| byte ^ round_key_byte);
+        block.map(|byte| byte ^ round_key_byte)
     }
 
     fn sub_bytes(block: Block) -> Block {
